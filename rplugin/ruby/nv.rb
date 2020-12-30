@@ -2,10 +2,9 @@ require 'neovim'
 require 'pry'
 
 Neovim.plugin do |plug|
-  plug.command(:NV) do |nvim|
+  plug.command(:NVT) do |nvim|
     nvim.message('hi')
-    binding.pry
-    # comment
+    log
   end
 end
 
