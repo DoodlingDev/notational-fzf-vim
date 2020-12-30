@@ -93,9 +93,12 @@ let s:search_path_str = join(map(copy(s:search_paths), 'shellescape(v:val)'))
 
 "=========================== Keymap ========================================
 
-let s:create_note_key = get(g:, 'nv_create_note_key', 'ctrl-x')
+let s:create_note_key = get(g:, 'nv_create_note_key', 'ctrl-e')
+let s:create_ref_note_key = get(g: 'nv_create_ref_note_key', 'ctrl-r')
+
 let s:yank_key = get(g:, 'nv_yank_key', 'ctrl-y')
 let s:create_note_window = get(g:, 'nv_create_note_window', 'vertical split ')
+let s:create_ref_note_window = get(g:, 'nv_create_ref_note_window', 'vertical split ')
 
 let s:keymap = get(g:, 'nv_keymap',
             \ {'ctrl-s': 'split',
@@ -106,6 +109,7 @@ let s:keymap = get(g:, 'nv_keymap',
 " Use `extend` in case user overrides default keys
 let s:keymap = extend(s:keymap, {
             \ s:create_note_key : s:create_note_window,
+            \ s:create_ref_note_key : s:create_ref_note_window,
             \ })
 
 " FZF expects a comma separated string.

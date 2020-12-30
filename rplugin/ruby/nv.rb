@@ -1,7 +1,8 @@
 require 'neovim'
 
 Neovim.plugin do |plug|
-  plug.command(:TestTest) do |nvim|
+  plug.command(:NV) do |nvim|
+    nvim.message('hi')
     # comment
   end
 end
