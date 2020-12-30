@@ -8,3 +8,7 @@ Neovim.plugin do |plug|
     # comment
   end
 end
+
+def log
+  File.write("log.txt", "data...")
+end
