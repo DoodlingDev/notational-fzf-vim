@@ -132,12 +132,13 @@ let s:python_executable = executable('pypy3') ? 'pypy3' : get(g:, 'python3_host_
 let s:highlight_path_expr = join([s:python_executable , '-S',expand('<sfile>:p:h:h') . '/print_lines.py' , '{2} {1} $FZF_PREVIEW_LINES', '2>' . s:null_path,])
 
 if s:use_short_pathnames
-    let s:format_path_expr = join([' | ', s:python_executable, '-S', shellescape(expand('<sfile>:p:h:h') . '/shorten_path_for_notational_fzf.py'),])
+    " let s:format_path_expr = join([' | ', s:python_executable, '-S', shellescape(expand('<sfile>:p:h:h') . '/shorten_path_for_notational_fzf.py'),])
+    let s:format_path_expr = join([' | ', 'ruby', shellescape(expand('<sfile>:p:h:h') . '/path_modifier.rb'),])
     " After piping through the Python script, our format is
     " filename:linum:shortname:linenum:contents, so we start at index 3 to
     " avoid displaying the long pathname
     " We skip index 4 to avoid showing line numbers
-    let s:display_start_index = '3,5..'
+    let s:display_start_index = '3,4..'
 else
     let s:format_path_expr = ''
     " Since we don't pipe through the python script, our data format is
@@ -160,42 +161,44 @@ let s:nv_ignore_pattern = exists('g:nv_ignore_pattern') ? s:ignore_list_to_str(g
 "============================== Handler Function ===========================
 
 function! s:handler(lines) abort
+    call NV_handler(a:lines)
+
     " exit if empty
-    if a:lines == [] || a:lines == ['','','']
-        return
-    endif
-   " Expect at least 2 elements, `query` and `keypress`, which may be empty
-   " strings.
-   let query    = a:lines[0]
-   let keypress = a:lines[1]
-   " `edit` is fallback in case something goes wrong
-   let cmd = get(s:keymap, keypress, 'edit')
-   " Preprocess candidates here. expect lines to have fmt
-   " filename:linenum:content
+    " if a:lines == [] || a:lines == ['','','']
+    "     return
+    " endif
+   " " Expect at least 2 elements, `query` and `keypress`, which may be empty
+   " " strings.
+   " let query    = a:lines[0]
+   " let keypress = a:lines[1]
+   " " `edit` is fallback in case something goes wrong
+   " let cmd = get(s:keymap, keypress, 'edit')
+   " " Preprocess candidates here. expect lines to have fmt
+   " " filename:linenum:content
 
-   " Handle creating note.
-   if keypress ==? s:create_note_key
-     let candidates = [fnameescape(s:main_dir  . '/' . query . s:ext)]
-   elseif keypress ==? s:yank_key
-     let pat = '\v(.{-}):\d+:'
-     let hashes = join(filter(map(copy(a:lines[2:]), 'matchlist(v:val, pat)[1]'), 'len(v:val)'), s:yank_separator)
-     return s:yank_to_register(hashes)
-   else
-       let filenames = a:lines[2:]
-       let candidates = []
-       for filename in filenames
-           " Don't forget trailing space in replacement.
-           let linenum = substitute(filename, '\v.{-}:(\d+):.*$', '+\1 ', '')
-           let name = substitute(filename, '\v(.{-}):\d+:.*$', '\1', '')
-           " fnameescape instead of shellescape because the file is consumed
-           " by vim rather than the shell
-           call add(candidates, linenum . fnameescape(name))
-       endfor
-   endif
+   " " Handle creating note.
+   " if keypress ==? s:create_note_key
+    "  let candidates = [fnameescape(s:main_dir  . '/' . query . s:ext)]
+   " elseif keypress ==? s:yank_key
+    "  let pat = '\v(.{-}):\d+:'
+    "  let hashes = join(filter(map(copy(a:lines[2:]), 'matchlist(v:val, pat)[1]'), 'len(v:val)'), s:yank_separator)
+    "  return s:yank_to_register(hashes)
+   " else
+    "    let filenames = a:lines[2:]
+    "    let candidates = []
+    "    for filename in filenames
+    "        " Don't forget trailing space in replacement.
+    "        let linenum = substitute(filename, '\v.{-}:(\d+):.*$', '+\1 ', '')
+    "        let name = substitute(filename, '\v(.{-}):\d+:.*$', '\1', '')
+    "        " fnameescape instead of shellescape because the file is consumed
+    "        " by vim rather than the shell
+    "        call add(candidates, linenum . fnameescape(name))
+    "    endfor
+   " endif
 
-   for candidate in candidates
-       execute join([cmd, candidate])
-   endfor
+   " for candidate in candidates
+    "    execute join([cmd, candidate])
+   " endfor
 
 endfunction
 
@@ -212,7 +215,7 @@ endfunction
 command! -nargs=* -bang NV
       \ call fzf#run(
           \ fzf#wrap({
-              \ 'sink*': function(exists('*NV_note_handler') ? 'NV_note_handler' : '<sid>handler'),
+              \ 'sink*': function(exists('*NV_handler') ? 'NV_handler' : '<sid>handler'),
               \ 'window': s:window_command,
               \ 'source': join([
                    \ s:command,
@@ -225,7 +228,6 @@ command! -nargs=* -bang NV
                    \ '--color never',
                    \ '--no-messages',
                    \ s:nv_ignore_pattern,
-                   \ '--no-heading',
                    \ '--with-filename',
                    \ ((<q-args> is '') ?
                      \ '"\S"' :
@@ -243,6 +245,7 @@ command! -nargs=* -bang NV
                                \ '--inline-info',
                                \ '--delimiter=":"',
                                \ '--with-nth=' . s:display_start_index ,
+                               \ '--nth 2',
                                \ '--tiebreak=' . 'length,begin' ,
                                \ '--expect=' . s:expect_keys ,
                                \ '--bind=' .  join([
@@ -253,7 +256,7 @@ command! -nargs=* -bang NV
                                               \ 'alt-d:page-down',
                                               \ 'ctrl-w:backward-kill-word',
                                               \ ], ','),
-                               \ '--preview=' . shellescape(s:highlight_path_expr) ,
+                               \ "--preview " . shellescape(s:highlight_path_expr),
                                \ '--preview-window=' . join(filter(copy([
                                                                    \ s:preview_direction,
                                                                    \ s:preview_width,
@@ -265,3 +268,4 @@ command! -nargs=* -bang NV
                                \ ])},<bang>0))
 
 
+" 'bat --color=always --style=numbers -l markdown -H {2} --theme gruvbox {1}')
