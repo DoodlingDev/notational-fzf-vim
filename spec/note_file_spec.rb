@@ -1,18 +1,30 @@
-require_relative '../lib/note_file.rb'
+require_relative '../lib/note_file'
 require 'fileutils'
 
 describe NoteFile do
-  # before :each do
-  #   if Dir.exists?(TEST_DIR)
-  #     FileUtils.rm_rf(TEST_DIR)
-  #   end
-  #   Dir.mkdir(TEST_DIR)
-  # end
+  before :each do
+    FileUtils.rm_rf(TEST_DIR) if Dir.exist?(TEST_DIR)
+    Dir.mkdir(TEST_DIR)
+  end
 
-  # after :each do
-  #   FileUtils.rm_rf(TEST_DIR)
-  # end
+  after :each do
+    FileUtils.rm_rf(TEST_DIR)
+  end
 
+  describe 'self#initialize' do
+    it 'should set the dir path instance variable' do
+      # notefile must be instantiated through a subclass
+      f = CreatedFile.new('query string', TEST_DIR)
+      expect(f.dir_path).to eq TEST_DIR
+    end
+
+    it 'should error if no filename or contents were set by a subclass' do
+      expect do
+        NoteFile.new(TEST_DIR)
+      end.to raise_error(StandardError,
+                         'NoteFile should be instantiated by a subclass which sets filename and contents')
+    end
+  end
   # describe "self#create" do
   #   it "should create a new file on disk" do
   #     expect {

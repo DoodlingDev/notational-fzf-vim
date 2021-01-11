@@ -8,34 +8,17 @@ class NoteFile
 
   def initialize(dir_path)
     @dir_path = dir_path
+
+    raise_initialize_error unless @filename && @contents
   end
 
-  def set_title(title)
+  def write_title(title)
     @contents[0] = "# #{title}\n"
-  end
-
-  def generate_filename
-    stamp = %x[date -j -f "%a %b %d %T %Z %Y" "`date`" "+%s"].chomp
-    ready = false
-    try = 0
-
-    while ready == false do
-      if File.exists?("#{dir_path}/#{stamp}.md")
-        try += 1
-        stamp = stamp.gsub(/\d$/, try.to_s)
-      else
-        ready = true
-      end
-    end
-
-    stamp
   end
 
   def save
     clear_file_on_disk
-    contents.each do |line|
-      File.write(absolute_path, line, mode: 'a')
-    end
+    write_to_disk
     true
   end
 
@@ -49,11 +32,21 @@ class NoteFile
 
   def clear_file_on_disk
     # FileUtils.touch(absolute_path)
-    File.write(absolute_path, "")
+    File.write(absolute_path, '')
+  end
+
+  def write_to_disk
+    contents.each do |line|
+      File.write(absolute_path, line, mode: 'a')
+    end
   end
 
   def read_contents
     # File.exists?(filename)
     []
+  end
+
+  def raise_initialize_error
+    raise 'NoteFile should be instantiated by a subclass which sets filename and contents'
   end
 end

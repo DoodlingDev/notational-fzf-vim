@@ -4,9 +4,9 @@ require_relative './note_file'
 
 class OpenedFile < NoteFile
   def initialize(filepath, dir_path)
-    super(dir_path)
     @filename = read_filename filepath
     @contents = read_contents filepath
+    super(dir_path)
   end
 
   private
