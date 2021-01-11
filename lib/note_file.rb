@@ -6,13 +6,8 @@
 class NoteFile
   attr_reader :dir_path, :filename, :contents
 
-  def initialize(query_string, dir_path)
+  def initialize(dir_path)
     @dir_path = dir_path
-    @filename = generate_filename
-    @contents = read_contents
-
-    set_title query_string
-    save
   end
 
   def set_title(title)

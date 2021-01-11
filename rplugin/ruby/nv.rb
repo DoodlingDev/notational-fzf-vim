@@ -1,6 +1,5 @@
 require 'neovim'
-require_relative '../../lib/note_file.rb'
-
+require_relative '../../lib/note_file'
 
 Neovim.plugin do |plug|
   plug.function(:NV_handler, nargs: 1) do |nvim, arg|
@@ -18,11 +17,11 @@ Neovim.plugin do |plug|
 end
 
 def log(arg)
-  File.write("/Users/aji/dev/tmp/log.txt", arg.to_s + "\n", mode: 'a')
+  File.write('/Users/aji/dev/tmp/log.txt', arg.to_s + "\n", mode: 'a')
 end
 
 def reset_log
-  File.write("/Users/aji/dev/tmp/log.txt", '')
+  File.write('/Users/aji/dev/tmp/log.txt', '')
 end
 
 def handler(query_string:, keypress:, selected_lines:, dir_path:, nvim:)
@@ -30,29 +29,27 @@ def handler(query_string:, keypress:, selected_lines:, dir_path:, nvim:)
   # log(keypress)
   # log(selected_lines)
   case keypress
-  when "ctrl-r"
-    log("pressed ref key")
+  when 'ctrl-r'
+    log('pressed ref key')
     # make ref
 
-  when ""
+  when ''
     # TODO: control for multi select
     # log("pressed enter")
-    filepath = /^([^:]+)\:/.match(selected_lines[0])
-
-    open_file = if filepath && (File.exists? filepath[1])
-      filepath[1]
-    else
-      file = NoteFile.new(query_string, dir_path)
-      file.absolute_path
-    end
+    filepath = /^([^:]+):/.match(selected_lines[0])
+    log filepath
+    open_file = if filepath && (File.exist? filepath[1])
+                  filepath[1]
+                else
+                  file = NoteFile.new(query_string, dir_path)
+                  file.absolute_path
+                end
     # make or open
     nvim.command("vsplit #{open_file}")
 
-
   else
-    log("pressed something else")
+    log('pressed something else')
     # nothing? ¯\_(ツ)_/¯
 
   end
 end
-

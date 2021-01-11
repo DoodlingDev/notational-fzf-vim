@@ -98,3 +98,5 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 =end
 end
+
+TEST_DIR = Dir.getwd + '/__test_files__'
