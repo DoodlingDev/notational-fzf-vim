@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require 'neovim'
-require_relative '../../lib/note_file'
+require_relative '../../lib/created_file'
+require_relative '../../lib/opened_file'
 
 Neovim.plugin do |plug|
   plug.function(:NV_handler, nargs: 1) do |nvim, arg|
@@ -17,7 +20,7 @@ Neovim.plugin do |plug|
 end
 
 def log(arg)
-  File.write('/Users/aji/dev/tmp/log.txt', arg.to_s + "\n", mode: 'a')
+  File.write('/Users/aji/dev/tmp/log.txt', "#{arg}\n", mode: 'a')
 end
 
 def reset_log
@@ -35,21 +38,19 @@ def handler(query_string:, keypress:, selected_lines:, dir_path:, nvim:)
 
   when ''
     # TODO: control for multi select
-    # log("pressed enter")
     filepath = /^([^:]+):/.match(selected_lines[0])
-    log filepath
-    open_file = if filepath && (File.exist? filepath[1])
-                  filepath[1]
-                else
-                  file = NoteFile.new(query_string, dir_path)
-                  file.absolute_path
-                end
-    # make or open
-    nvim.command("vsplit #{open_file}")
+
+    file = if filepath && (File.exist? filepath[1])
+             OpenedFile.new(filepath[1], dir_path)
+           else
+             CreatedFile.new(query_string, dir_path)
+           end
+
+    nvim.command("vsplit #{file.absolute_path}")
 
   else
     log('pressed something else')
-    # nothing? ¯\_(ツ)_/¯
+    # nothing?
 
   end
 end
