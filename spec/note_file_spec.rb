@@ -1,4 +1,5 @@
 require_relative '../lib/note_file'
+require_relative './spec_helper'
 require 'fileutils'
 
 describe NoteFile do

@@ -2,15 +2,15 @@ require_relative '../lib/opened_file'
 require_relative './spec_helper'
 require 'fileutils'
 
-TEST_FILENAME = '123456789'
-TEST_FILEPATH = "#{TEST_DIR}/#{TEST_FILENAME}.md"
+TEST_FILENAME = '123456789'.freeze
+TEST_FILEPATH = "#{TEST_DIR}/#{TEST_FILENAME}.md".freeze
 
 TEST_FILE_CONTENTS = [
   '# Heading',
   '',
   'Line of Text',
   'Second Line of Text'
-]
+].freeze
 
 describe OpenedFile do
   before :each do

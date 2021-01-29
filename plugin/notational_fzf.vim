@@ -249,7 +249,7 @@ command! -nargs=* -bang NV
                                \ '--tiebreak=' . 'length,begin' ,
                                \ '--expect=' . s:expect_keys ,
                                \ '--bind=' .  join([
-                                              \ 'alt-a:select-all',
+                                              \ 'ctrl-a:select-all',
                                               \ 'alt-q:deselect-all',
                                               \ 'alt-p:toggle-preview',
                                               \ 'alt-u:page-up',
