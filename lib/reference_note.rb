@@ -1,33 +1,40 @@
 # frozen_string_literal: true
 
 require_relative './utils'
+require_relative './opened_file'
 require 'pry'
 
 # pull in all the notes
 class ReferenceNote
-  attr_reader :dir_path
+  attr_reader :dir_path, :refs
 
-  def initialize(referencing_note_lines, dir_path)
+  def initialize(referencing_note_lines, dir_path, existing_filename = nil)
     @dir_path = dir_path
     @refs = instantiate referencing_note_lines
-    generate_aggregate_file
+    @filename = existing_filename if existing_filename
+    @contents = []
   end
 
   def absolute_path
-    @abs_path ||= "#{dir_path}/#{filename}.md"
+    @absolute_path ||= "#{dir_path}/#{filename}.md"
   end
-
-  private
 
   def generate_aggregate_file
     @refs.each do |ref|
-      write header(ref)
+      @contents << header(ref)
       ref.contents.each do |line|
-        write line
+        @contents << line
       end
-      write ref_spacer
+      @contents << ''
+      @contents << ''
     end
   end
+
+  def append_aggregate_to_buffer(buffer)
+    buffer.set_lines(0, @contents.length + 1, false, @contents)
+  end
+
+  private
 
   def write(line)
     File.write(absolute_path, "#{line}\n", mode: 'a')
@@ -47,15 +54,20 @@ class ReferenceNote
 
   def instantiate(note_lines)
     referencing_notes = []
-    filepaths = note_lines.map do |s|
-      filematch = /^([^:]+):/.match(s)
-      filematch[1]
-    end
+    filepaths = parse_for_paths note_lines
 
     filepaths.uniq.each do |filepath|
       file = OpenedFile.new(filepath, dir_path)
+      log("opened file dir_path: #{file.dir_path}")
       referencing_notes << file
     end
     referencing_notes
+  end
+
+  def parse_for_paths(note_lines)
+    note_lines.map do |s|
+      filematch = /^([^:]+):/.match(s)
+      filematch[1]
+    end
   end
 end

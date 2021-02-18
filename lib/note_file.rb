@@ -17,6 +17,7 @@ class NoteFile
   end
 
   def save
+    log("save attempted on file #{filename}")
     clear_file_on_disk
     write_to_disk
     true
@@ -28,17 +29,31 @@ class NoteFile
     @absolute_path ||= "#{dir_path}/#{filename}.md"
   end
 
+  def new_contents(new_lines)
+    log("new contents set for #{absolute_path}")
+    @contents = new_lines
+    self
+  end
+
+  def strip_trailing_whitespace
+
+    self
+  end
+
   private
 
   def clear_file_on_disk
-    # FileUtils.touch(absolute_path)
+    log("clear file on disk attempted for #{absolute_path}\n\n")
     File.write(absolute_path, '')
+    log("#{filename} written with: #{File.readlines(absolute_path)}\n\n")
   end
 
   def write_to_disk
+    log("write to disk attempted for #{absolute_path}\n\n")
     contents.each do |line|
-      File.write(absolute_path, line, mode: 'a')
+      File.write(absolute_path, "#{line}\n", mode: 'a')
     end
+    log("#{absolute_path} written with: #{File.readlines(absolute_path)}\n\n")
   end
 
   def read_contents

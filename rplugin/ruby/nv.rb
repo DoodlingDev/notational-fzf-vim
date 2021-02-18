@@ -2,6 +2,7 @@
 
 require 'neovim'
 require_relative '../../lib/handler'
+require_relative '../../lib/ref_autosave'
 
 Neovim.plugin do |plug|
   plug.function(:NV_handler, nargs: 1) do |nvim, arg|
@@ -15,5 +16,9 @@ Neovim.plugin do |plug|
                 selected_lines: selected_lines,
                 dir_path: dir_path,
                 nvim: nvim).execute
+  end
+
+  plug.function(:NV_ref_autosave, nargs: 0) do |nvim, _arg|
+    RefAutosaveHandler.new(nvim).execute
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../lib/reference_note'
 require_relative '../lib/opened_file'
 require_relative './spec_helper'
@@ -47,7 +49,7 @@ describe ReferenceNote do
     FileUtils.rm_rf(TEST_DIR)
   end
 
-  describe '#initialize' do
+  describe '#generate_aggregate_file' do
     let(:referencing_note_lines) do
       [
         "#{TEST_DIR}/file_one.md:2:# Heading 1",
@@ -57,6 +59,8 @@ describe ReferenceNote do
 
     it 'creates a reference note with the proper contents' do
       subject = ReferenceNote.new(referencing_note_lines, TEST_DIR)
+      subject.generate_aggregate_file
+
       test_filepath = subject.absolute_path
 
       ref_file = File.open(test_filepath)
