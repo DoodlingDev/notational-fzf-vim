@@ -36,7 +36,10 @@ class NoteFile
   end
 
   def strip_trailing_whitespace
+    rev = @contents.reverse
+                   .drop_while { |ln| ln == '' }
 
+    @contents = rev.reverse
     self
   end
 
