@@ -48,20 +48,26 @@ class Handler
 
   def open_selected_file
     file = open_file
-    nvim.command("vsplit #{file.absolute_path}")
+    nvim.command("e #{file.absolute_path}")
   end
 
   def new_scratch_buffer
-    title = if @query_string == ''
-              '<selection>'
-            else
-              @query_string
-            end
-
-    nvim.command("vsplit Ref:#{title}")
+    nvim.command("e Ref:#{title}")
     nvim.command('setlocal buftype=nofile')
     nvim.command('setlocal bufhidden=hide')
+    nvim.command('setlocal ft=markdown')
+    nvim.command('cabbrev w <c-r>=(getcmdtype()==\':\' && getcmdpos()==1 ? \'call NV_ref_autosave()\' : \'w\')<CR>')
+    nvim.command('nnoremap <buffer> <leader>w :call NV_ref_autosave()<CR>')
+
     nvim.get_current_buf
+  end
+
+  def title
+    if @query_string == ''
+      '<selection>'
+    else
+      @query_string
+    end
   end
 
   def execute_reference_note
