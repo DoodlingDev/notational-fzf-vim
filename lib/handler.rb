@@ -4,6 +4,7 @@ require_relative './utils'
 require_relative './created_file'
 require_relative './opened_file'
 require_relative './reference_note'
+require_relative './scratch_buffer'
 
 # take in input from neovim and do something with it
 class Handler
@@ -22,6 +23,10 @@ class Handler
     when 'ctrl-r'
       log('pressed ref key')
       execute_reference_note
+
+    when 'ctrl-e'
+      log('pressed open anyway key')
+      create_file
 
     when ''
       # TODO: control for multi select
@@ -42,8 +47,13 @@ class Handler
     if filepath && (File.exist? filepath[1])
       OpenedFile.new(filepath[1], dir_path)
     else
-      CreatedFile.new(query_string, dir_path)
+      create_file
     end
+  end
+
+  def create_file
+    file = CreatedFile.new(query_string, dir_path)
+    nvim.command("e #{file.absolute_path}")
   end
 
   def open_selected_file
@@ -51,29 +61,10 @@ class Handler
     nvim.command("e #{file.absolute_path}")
   end
 
-  def new_scratch_buffer
-    nvim.command("e Ref:#{title}")
-    nvim.command('setlocal buftype=nofile')
-    nvim.command('setlocal bufhidden=hide')
-    nvim.command('setlocal ft=markdown')
-    nvim.command('cabbrev w <c-r>=(getcmdtype()==\':\' && getcmdpos()==1 ? \'call NV_ref_autosave()\' : \'w\')<CR>')
-    nvim.command('nnoremap <buffer> <leader>w :call NV_ref_autosave()<CR>')
-
-    nvim.get_current_buf
-  end
-
-  def title
-    if @query_string == ''
-      '<selection>'
-    else
-      @query_string
-    end
-  end
-
   def execute_reference_note
     ref = ReferenceNote.new(selected_lines, dir_path)
     ref.generate_aggregate_file
-    buf = new_scratch_buffer
+    buf = ScratchBuffer.new(nvim: nvim, query_string: query_string).open
     ref.append_aggregate_to_buffer buf
   end
 end
